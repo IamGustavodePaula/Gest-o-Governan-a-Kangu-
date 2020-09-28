@@ -1,0 +1,262 @@
+Sub Rotina_Gestão()
+'Rotina do relatório Gestão & Governança
+
+'Variável que identifica a nomenclatura do arquivo de logistic's
+Dim logistic As String
+logistic = Sheets("Capa").Range("A1").Value
+
+'Variável que identifica a nomenclatura do arquivo de Places
+Dim Place As String
+Place = Sheets("Capa").Range("A2").Value
+
+'Reixibe os relatórios ocultos
+Sheets("Logistic").Visible = True
+Sheets("Place").Visible = True
+Sheets("TD").Visible = True
+
+'Limpa a base do Logistic's
+Sheets("Base_Log").Select
+Range("A2").Select
+If ActiveCell <> "" Then
+Range("A2:AB2").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Delete Shift:=xlUp
+End If
+
+'Abre o arquivo de Logistic's na Pasta de Downloads
+Workbooks.Open Filename:="C:\Users\gusta\Downloads\" & logistic
+Application.DisplayAlerts = False
+
+'Copila os dados do relatório Logistic's
+Workbooks(logistic).Activate
+Columns("A:U").Select
+Selection.Copy
+Application.DisplayAlerts = False
+ActiveWindow.Close SaveChanges:=False
+
+'Cola os dados copiados
+Sheets("Logistic").Select
+Range("A1").Select
+ActiveSheet.Paste
+Application.CutCopyMode = False
+
+'Hora do BIP
+Range("V2").Select
+ActiveCell.FormulaR1C1 = "=LEFT(RC[-4],5)"
+
+'Indicador de Pontualidade
+Range("W2").Select
+ActiveCell.FormulaR1C1 = "=MID(RC[-5],SEARCH(""-"",RC[-5])+2,10)"
+    
+'DE X PARA Ocorrências
+Range("X2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-4],Referência!C[-19]:C[-18],2,0),""S/ Ocorrências"")"
+    
+'Data de referência
+Range("Y2").Select
+ActiveCell.FormulaR1C1 = "=DATEVALUE(TEXT(RC[-8],""dd/mm/aaaa""))"
+Range("Y2").Select
+Selection.NumberFormat = "m/d/yyyy"
+
+'Hora Inicial Planejada
+Range("Z2").Select
+ActiveCell.FormulaR1C1 = "=LEFT(RC[-11],5)"
+    
+'Hora Final Planejada
+Range("AA2").Select
+ActiveCell.FormulaR1C1 = "=MID(RC[-12],SEARCH(""a"",RC[-12])+2,5)"
+    
+'Indicador de Pontualidade (Correção de CONFIG)
+Range("AB2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-6]<RC[-2],""Early"",IF(RC[-6]>RC[-1],""Delay"",""On Time""))"
+    
+'Replica as fórmulas p/ todas as linhas
+Range("V2:AB2").Select
+Selection.Copy
+Range("U2").Select
+Selection.End(xlDown).Select
+ActiveCell.Offset(0, 1).Select
+Range(Selection, Selection.End(xlUp)).Select
+ActiveSheet.Paste
+
+'Cola como valores
+Columns("V:AB").Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Application.CutCopyMode = False
+
+'Copia o relatório pronto
+Range("A2:AB2").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+
+'Cola na base de dados do Logistic's
+Sheets("Base_Log").Select
+Range("A2").Select
+ActiveSheet.Paste
+
+'Limpa os dados brutos
+Sheets("Logistic").Select
+Columns("A:AB").Select
+Selection.Delete Shift:=xlToLeft
+
+
+'ROTINA RELATÓRIO DE PLACES
+Sheets("Base_Place").Select
+Range("A2").Select
+If ActiveCell <> "" Then
+Range("A2:N2").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Delete Shift:=xlUp
+End If
+
+'Abre o arquivo de Places na Pasta de Downloads
+Workbooks.Open Filename:="C:\Users\gusta\Downloads\" & Place
+Application.DisplayAlerts = False
+
+'Copia os dados
+Workbooks(Place).Activate
+Columns("A:N").Select
+Selection.Copy
+Application.DisplayAlerts = False
+ActiveWindow.Close SaveChanges:=False
+
+'Cola os dados
+Sheets("Place").Select
+Range("A1").Select
+ActiveSheet.Paste
+Application.CutCopyMode = False
+
+'Elimina dados desnecessários
+Columns("B:H").Select
+Selection.Delete Shift:=xlToLeft
+Columns("D:D").Select
+Selection.Delete Shift:=xlToLeft
+
+'Data de Postagem
+Range("F2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-2]="""","""",IF(MID(RC[-2],SEARCH(""T"",RC[-2])+1,5)-""03:00""<0,DATEVALUE(TEXT(LEFT(RC[-2],10),""dd/mm/aaaa""))-1,DATEVALUE(TEXT(LEFT(RC[-2],10),""dd/mm/aaaa""))))"
+
+'Hora de Postagem
+Range("G2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-3]="""","""",TEXT(IF(MID(RC[-3],SEARCH(""T"",RC[-3])+1,5)-""03:00""<0,MID(RC[-3],SEARCH(""T"",RC[-3])+1,5)+""21:00"",MID(RC[-3],SEARCH(""T"",RC[-3])+1,5)-""03:00""),""hh:mm""))"
+    
+'Data de Coleta
+Range("H2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-3]="""","""",IF(MID(RC[-3],SEARCH(""T"",RC[-3])+1,5)-""03:00""<0,DATEVALUE(TEXT(LEFT(RC[-3],10),""dd/mm/aaaa""))-1,DATEVALUE(TEXT(LEFT(RC[-3],10),""dd/mm/aaaa""))))"
+
+'Hora de Coleta
+Range("I2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-4]="""","""",TEXT(IF(MID(RC[-4],SEARCH(""T"",RC[-4])+1,5)-""03:00""<0,MID(RC[-4],SEARCH(""T"",RC[-4])+1,5)+""21:00"",MID(RC[-4],SEARCH(""T"",RC[-4])+1,5)-""03:00""),""hh:mm""))"
+    
+'Configura o formato da data
+Range("F2,H2").Select
+Range("F2,H2").Activate
+Selection.NumberFormat = "m/d/yyyy"
+
+'Formato de coleta em D-0
+Range("J2").Select
+ActiveCell.FormulaR1C1 = "=IF(OR(RC[-2]="""",RC[-2]>RC[-4]),""Não"",""Sim"")"
+
+'Replica as fórmulas
+Range("F2:j2").Select
+Selection.Copy
+Range("D2").Select
+Selection.End(xlDown).Select
+ActiveCell.Offset(0, 2).Select
+Range(Selection, Selection.End(xlUp)).Select
+ActiveSheet.Paste
+
+'Cola como valores
+Columns("F:I").Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Application.CutCopyMode = False
+
+'Elimina colunas desnecessárias
+Columns("D:E").Select
+Selection.Delete Shift:=xlToLeft
+
+'Carrier
+Range("I2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-7],Referência!C[-1]:C[3],5,0),"""")"
+
+'Cidade
+Range("J2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-8],Referência!C[-2]:C[2],2,0),"""")"
+
+'UF
+Range("K2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-9],Referência!C[-3]:C[1],3,0),"""")"
+   
+'HUB
+Range("L2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-10],Referência!C[-4]:C,4,0),"""")"
+
+'Distância Cidade x HUB
+Range("M2").Select
+ActiveCell.FormulaR1C1 = _
+"=IFERROR(VLOOKUP(RC[-11],Referência!C[-5]:C[1],7,0),"""")"
+
+'Turno de Coleta
+Range("N2").Select
+ActiveCell.FormulaR1C1 = _
+"=IF(RC[-9]<""15:01"",""1. Antes de 15h"",IF(RC[-9]>""18:00"",""3. Após 18h"",""2. Entre 15h ~ 18h""))"
+
+'Replica os dados
+Range("I2:N2").Select
+Selection.Copy
+Range("h2").Select
+Selection.End(xlDown).Select
+ActiveCell.Offset(0, 1).Select
+Range(Selection, Selection.End(xlUp)).Select
+ActiveSheet.Paste
+   
+'Cola como valores
+Columns("I:N").Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Application.CutCopyMode = False
+    
+'Limpa os dados brutas e atauliza a base do rel de Places
+Range("A2:N2").Select
+Range(Selection, Selection.End(xlDown)).Select
+Selection.Copy
+Sheets("Base_Place").Select
+Range("A2").Select
+ActiveSheet.Paste
+Sheets("Place").Select
+Columns("A:N").Select
+Selection.Delete Shift:=xlToLeft
+
+'Atualiza as tabelas dinâmicas
+Sheets("TD").Select
+For Each plan In ActiveWorkbook.Sheets
+For Each PivotTable In plan.PivotTables
+PivotTable.RefreshTable
+Next
+Next
+
+'Salva o arquivo, e oculta abas em branco
+ActiveWorkbook.Save
+Sheets("Logistic").Visible = False
+Sheets("Place").Visible = False
+Sheets("TD").Visible = False
+
+Sheets("Dash").Select
+MsgBox ("Dados Atualizados!")
+
+End Sub
